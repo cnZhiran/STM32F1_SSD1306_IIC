@@ -16,7 +16,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"                  // Device header
 #include "driver.h"
-#include <stdlib.h>
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -91,13 +90,14 @@ void Interrpt_Init(void) {
 	NVIC_Init(&NVIC_InitStructure);
 	
 }
+
 /**
   * @brief  程序入口
   * @param  无                
   * @retval 无
   */
+void OLED_Example_Loop(u8g2_t *u8g2);
 int main(void) {
-	int x,y,m;
 	Clock_Init();
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);	//关闭JTAG保留SW
 	SysTick_Config(72000000 / 100000);												//SysTick 每10us中断一次
@@ -106,26 +106,11 @@ int main(void) {
 	OLED_Init();
 	Interrpt_Init();
 	
-	//向显存绘制“山东科技大学”字样
-	OLED_DrawCNZHString(0,1, "山", 16 ,1);
-	OLED_DrawCNZHString(16,2, "东", 16 ,1);
-	OLED_DrawCNZHString(32,3, "科", 16 ,1);
-	OLED_DrawCNZHString(48,4, "技", 16 ,1);
-	OLED_DrawCNZHString(64,5, "大", 16 ,1);
-	OLED_DrawCNZHString(80,6, "学", 16 ,1);
-	OLED_DrawCNZHString(96,7, "山", 16 ,1);
-	OLED_DrawCNZHString(112,8, "东", 16 ,1);
-	OLED_DrawCNZHString(0,17, "科", 16 ,0);
-	OLED_DrawCNZHString(16,18, "技", 16 ,0);
-	OLED_DrawCNZHString(32,19, "大", 16 ,0);
-	OLED_DrawCNZHString(48,20, "学", 16 ,0);
-	OLED_DrawCNZHString(64,21, "山", 16 ,0);
-	OLED_DrawCNZHString(80,22, "东", 16 ,0);
-	OLED_DrawCNZHString(96,23, "科", 16 ,0);
-	OLED_DrawCNZHString(112,24, "技", 16 ,0);
 	//开始使用DMA方式刷新屏幕
-	OLED_StratDMAFlush();
+	while(OLED_Continuous_Refresh_Start());
 	
+	u8g2_t *u8g2 = OLED_U8G2_Init();
+
 	//初始化结束
 	printf("init_already\n");
 	system_stat = system_ready;
@@ -134,12 +119,7 @@ int main(void) {
 		//每10秒向串口输出帧率
 		if(times % 1000000 == 0)
 			printf("FPS:%.2f\n", fps);
-		
-		//在显存中随机绘制黑点或白点
-		x = rand() % 128;
-		y = rand() % 64;
-		m = rand() % 2;
-		OLED_DrawPoint(x,y,m);
+		OLED_Example_Loop(u8g2);
 	}
 }
 
