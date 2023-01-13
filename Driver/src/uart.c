@@ -144,7 +144,7 @@ int fputc(int ch, FILE *f)
 int fgetc(FILE *f) 
 { 
   static unsigned int i=0;
-	u8 ch = rx1Data[i++];
+	uint8_t ch = rx1Data[i++];
 	if(i>=RXDATA_SIZE) i=0;
   return ch; 
 } 

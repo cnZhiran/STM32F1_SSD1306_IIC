@@ -1,2 +1,4 @@
 # STM32F1_SSD1306_IIC
-STM32F1/StdPeriph_Lib 标准固件库/SSD1306 IIC/DMA方式/支持16x16汉字/移植u8g2
+STM32F1/StdPeriph_Lib 标准固件库/OLED/SSD1306 IIC/DMA方式/支持16x16汉字/移植u8g2
+
+
