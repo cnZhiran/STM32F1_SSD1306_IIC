@@ -585,7 +585,7 @@ void OLED_CNZH_Example(void) {
 	OLED_DrawString(16, 40, "github: cnZhiran", 12 ,1);
 }
 //帧率、CPU占用率测试用例，向显存输出随机数模拟的白噪声
-#ifdef	COMPUT_FPS
+#ifdef	COMPUT_TRANS_FPS
 void OLED_Simulated_Noise_Example(void) {
 	int x,y,m;
 	char chr[17];
@@ -600,7 +600,7 @@ void OLED_Simulated_Noise_Example(void) {
 	m = rand() %2;
 	OLED_DrawPoint(x,y,m);
 }
-#else		/* COMPUT_FPS */
+#else		/* COMPUT_TRANS_FPS */
 void OLED_Simulated_Noise_Example(void) {
 	int x,y,m;
 	
@@ -610,7 +610,7 @@ void OLED_Simulated_Noise_Example(void) {
 	m = rand() %2;
 	OLED_DrawPoint(x,y,m);
 }
-#endif	/* COMPUT_FPS */
+#endif	/* COMPUT_TRANS_FPS */
 
 //帧率测试用例，向显存输出不同帧率的移动的数字
 void OLED_Frame_Example(void) {
@@ -619,26 +619,26 @@ void OLED_Frame_Example(void) {
 	if(pos_l != pos) {
 		if(pos % 2 == 0){
 			pos_l = pos;
-			if(pos) {memset(&OLED_GRAM[0][pos-2], 0x00, 2);
-							 memset(&OLED_GRAM[1][pos-2], 0x00, 2);}
+			memset(OLED_GRAM[0], 0x00, pos);
+			memset(OLED_GRAM[1], 0x00, pos);
 			OLED_DrawChar(pos   , 0, '5', 16, 1);
 			OLED_DrawChar(pos+ 8, 0, '0', 16, 1);
 		}
 		if(pos % 3 == 0){
-			if(pos)	{memset(&OLED_GRAM[2][pos-3], 0x00, 3);
-							 memset(&OLED_GRAM[3][pos-3], 0x00, 3);}
+			memset(OLED_GRAM[2], 0x00, pos);
+			memset(OLED_GRAM[3], 0x00, pos);
 			OLED_DrawChar(pos   , 16, '3', 16, 1);
 			OLED_DrawChar(pos+ 8, 16, '3', 16, 1);
 		}
 		if(pos % 4 == 0){
-			if(pos) {memset(&OLED_GRAM[4][pos-4], 0x00, 4);
-							 memset(&OLED_GRAM[5][pos-4], 0x00, 4);}
+			memset(OLED_GRAM[4], 0x00, pos);
+			memset(OLED_GRAM[5], 0x00, pos);
 			OLED_DrawChar(pos   , 32, '2', 16, 1);
 			OLED_DrawChar(pos+ 8, 32, '5', 16, 1);
 		}
 		if(pos % 6 == 0){
-			if(pos)	{memset(&OLED_GRAM[6][pos-6], 0x00, 6);
-							 memset(&OLED_GRAM[7][pos-6], 0x00, 6);}
+			memset(OLED_GRAM[6], 0x00, pos);
+			memset(OLED_GRAM[7], 0x00, pos);
 			OLED_DrawChar(pos   , 48, '1', 16, 1);
 			OLED_DrawChar(pos+ 8, 48, '7', 16, 1);
 		}
@@ -739,7 +739,7 @@ int OLED_Refresh_Gram(int sync)
 	DMA_Cmd(DMA1_Channel6, ENABLE);
 	
 	if(sync){
-		timeout = WaitTime*10;
+		timeout = WaitTime;
 		while(dma1_l6_busy) if(--timeout == 0) return -1;
 	}
 	

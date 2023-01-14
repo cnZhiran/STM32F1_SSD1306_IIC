@@ -7,8 +7,8 @@
   ******************************************************************************
 	* @attention
 	*
-  * 该程序开源免费，请自觉遵守开源协议，如果您是通过购买获得此代码，请自行申诉。
-	* 同时，由于使用该程序所造成的任何直接或间接损失，作者都概不负责。
+  * 该代码开源免费，请自觉遵守开源协议，如果您是通过购买获得此代码，一定是被噶韭菜了！
+	* 同时，由于使用该代码所造成的任何直接或间接损失，作者都概不负责。
   *
   ******************************************************************************
   */
@@ -38,11 +38,6 @@ void Clock_Init(void) {
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
   //AFIO时钟
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
-//	//定时器时钟
-//	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1 , ENABLE);
-//	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2 , ENABLE);
-//	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 , ENABLE);
-//	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4 , ENABLE);
 	//串口时钟
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1,ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3,ENABLE);
@@ -96,11 +91,10 @@ void Interrpt_Init(void) {
   * @param  无                
   * @retval 无
   */
-void OLED_Example_Loop(u8g2_t *u8g2);
 int main(void) {
 	Clock_Init();
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);	//关闭JTAG保留SW
-	SysTick_Config(72000000 / 100000);												//SysTick 每10us中断一次
+	SysTick_Config(SystemCoreClock / 100000);												//SysTick 每10us中断一次
 	UART1_Init(115200);
 	UART3_Init(115200);
 	OLED_Init();

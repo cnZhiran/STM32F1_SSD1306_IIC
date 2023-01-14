@@ -7,8 +7,8 @@
   ******************************************************************************
 	* @attention
 	*
-  * 该程序开源免费，请自觉遵守开源协议，如果您是通过购买获得此代码，请自行申诉。
-	* 同时，由于使用该程序所造成的任何直接或间接损失，作者都概不负责。
+  * 该代码开源免费，请自觉遵守开源协议，如果您是通过购买获得此代码，一定是被噶韭菜了！
+	* 同时，由于使用该代码所造成的任何直接或间接损失，作者都概不负责。
   *
   ******************************************************************************
   */
@@ -25,9 +25,13 @@
   * @{
   */
 	 
+#define OLED_SIZE_X 64
+#define OLED_SIZE_Y 128
+#define OLED_PAGE_NUM OLED_SIZE_X/8
+
 #define USE_GRAM	//启用图形缓存，以及它的基本控制和绘制函数
 #define USE_PAGE	//启用页绘制函数（非DMA方式）
-#define SUPPORT_U8G2	//启用u8g2第三方图形库，若不启用，可将组u8g2删除，以减小程序大小
+#define SUPPORT_U8G2	//启用u8g2第三方图形库，若不启用，可将组u8g2删除，以减少程序大小
 	 
 #ifdef	SUPPORT_U8G2	
 #define	USE_U8G2_EXAMPLE		//启用u8g2绘制测试用例
@@ -39,14 +43,22 @@
 #ifdef	USE_GRAM
 #define USE_GRAM_DRAW_BASE_FUNCTION	//使用图形缓存基本绘制函数
 #ifdef	USE_GRAM_DRAW_BASE_FUNCTION
-#define COMPUT_FPS					//计算帧率
+#define COMPUT_TRANS_FPS					//计算传输帧率
 #define USE_GRAM_EXAMPLE		//启用图形缓存的绘制测试用例
 #endif  /* USE_GRAM_DRAW_BASE_FUNCTION */
 #endif	/* USE_GRAM */
 
-#define OLED_SIZE_X 64
-#define OLED_SIZE_Y 128
-#define OLED_PAGE_NUM OLED_SIZE_X/8
+#if define COMPUT_TRANS_FPS || define USE_GRAM_EXAMPLE	//计算帧率和测试用例需要使用一个可靠的系统时间计数变量
+#define SYSTIME_VARIABLE	times		//系统时间计数变量名称
+#define SYSTIME_PERIOD		10			//计数一次的周期，单位微秒us
+#define SYSTIME_SIZE			0				//计数变量的范围，UINT32_MAX+1等价于0
+//如果您使用SysTick->VAL寄存器作为系统时间，请尽可能使它的置数周期大于100ms
+//#define SYSTIME_DOWN_CONT
+//#define SYSTIME_VARIABLE	SysTick->VAL
+//#define SYSTIME_PERIOD		100000.0/((SysTick->CTRL & SysTick_CTRL_CLKSOURCE_Msk) ? PCLK2_FREQUENCY : PCLK2_FREQUENCY/8)			//计数一次的周期，单位微秒us
+//#define SYSTIME_SIZE			SysTick->LOAD +1
+
+#endif  /* COMPUT_TRANS_FPS || USE_GRAM_EXAMPLE */
 	 
 /**
   * @}
@@ -65,9 +77,9 @@
 /** @defgroup OLED_Exported_Variables
   * @{
   */	 
-#ifdef	COMPUT_FPS
+#ifdef	COMPUT_TRANS_FPS
 extern float fps;
-#endif	/* COMPUT_FPS */
+#endif	/* COMPUT_TRANS_FPS */
 	 
 /**
   * @}
