@@ -15,7 +15,6 @@
 
 
 uint8_t OLED_GRAM[OLED_PAGE_NUM][OLED_SIZE_Y];
-uint32_t times_l;
 float fps;
 int continuous_refresh=0,dma1_l6_busy=0;
 
@@ -259,7 +258,7 @@ void OLED_Clear(void)
 }
 /**
   * @brief  填充函数
-	* @param  无
+	* @param  val: 要全屏填充的内容
   * @retval 无
   */
 void OLED_Full(uint8_t val)
@@ -589,14 +588,14 @@ void OLED_CNZH_Example(void) {
 void OLED_Simulated_Noise_Example(void) {
 	int x,y,m;
 	char chr[17];
-	if(times % 20000 == 0) {
+	if(SYSTIME_VARIABLE % 20000 == 0) {
 		sprintf(chr, "rate:%8.2ffps", fps);
 		OLED_DrawString(0, 0, chr, 16, 1);
 	}
 	
 	//在显存中随机绘制黑点或白点
-	x = rand() %128;
-	y = rand() %48 +16;
+	x = rand() %OLED_SIZE_Y;
+	y = rand() %(OLED_SIZE_X-16) +16;
 	m = rand() %2;
 	OLED_DrawPoint(x,y,m);
 }
@@ -605,8 +604,8 @@ void OLED_Simulated_Noise_Example(void) {
 	int x,y,m;
 	
 	//在显存中随机绘制黑点或白点
-	x = rand() %128;
-	y = rand() %64;
+	x = rand() %OLED_SIZE_Y;
+	y = rand() %OLED_SIZE_X;
 	m = rand() %2;
 	OLED_DrawPoint(x,y,m);
 }
@@ -614,7 +613,15 @@ void OLED_Simulated_Noise_Example(void) {
 
 //帧率测试用例，向显存输出不同帧率的移动的数字
 void OLED_Frame_Example(void) {
-	unsigned char pos = times /1000 %109;
+#if (OLED_SIZE_Y >= 128)
+	unsigned char pos = SYSTIME_VARIABLE *SYSTIME_PERIOD /10000 %109;
+#elif (OLED_SIZE_Y >= 96)
+	unsigned char pos = SYSTIME_VARIABLE *SYSTIME_PERIOD /10000 %73;
+#elif (OLED_SIZE_Y >= 64)
+	unsigned char pos = SYSTIME_VARIABLE *SYSTIME_PERIOD /10000 %49;
+#elif (OLED_SIZE_Y >= 48)
+	unsigned char pos = SYSTIME_VARIABLE *SYSTIME_PERIOD /10000 %25;
+#endif
 	static unsigned char pos_l=0;
 	if(pos_l != pos) {
 		if(pos % 2 == 0){
@@ -647,7 +654,7 @@ void OLED_Frame_Example(void) {
 
 #ifdef	USE_U8G2_EXAMPLE
 void OLED_Example_Loop(u8g2_t *u8g2) {
-	unsigned char stat=times /1000000 %4;
+	unsigned char stat=SYSTIME_VARIABLE *SYSTIME_PERIOD /10000000 %4;
 	static unsigned char stat_l=0;
 	if(stat_l != stat) {
 		OLED_Clear_Gram();
@@ -672,7 +679,7 @@ void OLED_Example_Loop(u8g2_t *u8g2) {
 }
 #else		/* USE_U8G2_EXAMPLE */
 void OLED_Example_Loop(void) {
-	unsigned char stat=times /1000000 %3;
+	unsigned char stat=SYSTIME_VARIABLE *SYSTIME_PERIOD /10000000 %3;
 	static unsigned char stat_l=0;
 	if(stat_l != stat) {
 		OLED_Clear_Gram();
@@ -703,9 +710,18 @@ void OLED_Clear_Gram(void)
 //刷新函数
 int OLED_Refresh_Gram(int sync)
 {
+	static uint32_t times_l;
 	int timeout;
-	fps = 100000.0/(times - times_l);
-	times_l = times;
+	
+#ifndef	SYSTIME_DOWN_CONT
+	int32_t	times_bias = SYSTIME_VARIABLE - times_l;
+#else		/* SYSTIME_DOWN_CONT */
+	int32_t	times_bias = times_l - SYSTIME_VARIABLE;
+#endif	/* SYSTIME_DOWN_CONT */
+	if(times_bias < 0) times_bias += SYSTIME_SIZE;
+	fps = 1000000.0 /SYSTIME_PERIOD /times_bias;
+	times_l = SYSTIME_VARIABLE;
+	
 	while(OLED_send_cmd(0xb0));				//设置页地址（0~7）
 	while(OLED_send_cmd(0x00));				//设置显示位置—列低地址
 	while(OLED_send_cmd(0x10));				//设置显示位置—列高地址 

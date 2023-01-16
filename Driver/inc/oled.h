@@ -48,14 +48,14 @@
 #endif  /* USE_GRAM_DRAW_BASE_FUNCTION */
 #endif	/* USE_GRAM */
 
-#if define COMPUT_TRANS_FPS || define USE_GRAM_EXAMPLE	//计算帧率和测试用例需要使用一个可靠的系统时间计数变量
+#if defined COMPUT_TRANS_FPS || defined USE_GRAM_EXAMPLE	//计算帧率和测试用例需要使用一个可靠的系统时间计数变量
 #define SYSTIME_VARIABLE	times		//系统时间计数变量名称
 #define SYSTIME_PERIOD		10			//计数一次的周期，单位微秒us
 #define SYSTIME_SIZE			0				//计数变量的范围，UINT32_MAX+1等价于0
 //如果您使用SysTick->VAL寄存器作为系统时间，请尽可能使它的置数周期大于100ms
-//#define SYSTIME_DOWN_CONT
+//#define SYSTIME_DOWN_CONT				//SysTick是个减计数器
 //#define SYSTIME_VARIABLE	SysTick->VAL
-//#define SYSTIME_PERIOD		100000.0/((SysTick->CTRL & SysTick_CTRL_CLKSOURCE_Msk) ? PCLK2_FREQUENCY : PCLK2_FREQUENCY/8)			//计数一次的周期，单位微秒us
+//#define SYSTIME_PERIOD		1000000.0/((SysTick->CTRL & SysTick_CTRL_CLKSOURCE_Msk) ? PCLK2_FREQUENCY : PCLK2_FREQUENCY/8)			//计数一次的周期，单位微秒us
 //#define SYSTIME_SIZE			SysTick->LOAD +1
 
 #endif  /* COMPUT_TRANS_FPS || USE_GRAM_EXAMPLE */
