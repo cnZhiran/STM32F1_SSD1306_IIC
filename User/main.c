@@ -111,21 +111,25 @@ int main(void) {
 	//开始使用DMA方式刷新屏幕
 	while(OLED_Continuous_Refresh_Start());
 	
-	//u8g2_t *u8g2 = OLED_U8G2_Init();
+	u8g2_t *u8g2 = OLED_U8G2_Init();
 
 	//初始化结束
 	printf("init_already\n");
 	system_stat = system_ready;
 	
 	while(1){
-		//每10秒向串口输出帧率
 #ifdef OLED_COMPUT_TRANS_FPS
-		if(times % 1000000 == 0)
-			printf("FPS:%.2f\n", fps);
+		//每10秒向串口输出帧率
+		uint32_t times_n = OLED_SYSTIME_VARIABLE *OLED_SYSTIME_PERIOD /10000000;
+		static uint32_t times_l=0;
+		if(times_n != times_l) {
+			times_l = times_n;
+			printf("frame rate:%.2f\n", fps);
+		}
 #endif /* OLED_COMPUT_TRANS_FPS */
 
-		//OLED_Example_Loop(u8g2);
-		OLED_Example_Loop();
+		OLED_Example_Loop(u8g2);
+		//OLED_Example_Loop();
 	}
 }
 

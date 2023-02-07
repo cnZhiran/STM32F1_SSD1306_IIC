@@ -3,6 +3,13 @@
   * @file    oled.h
   * @author  Zhiran
   * @date    2021-8-3
+  * @brief   This file provides the IIC-OLED functions.
+  ******************************************************************************
+	* @attention
+	*
+  * 该代码开源免费，请自觉遵守开源协议，如果您是通过购买获得此代码，一定是被噶韭菜了！
+	* 同时，由于使用该代码所造成的任何直接或间接损失，作者都概不负责。
+  *
   ******************************************************************************
   */
 #include "oled.h"
@@ -12,7 +19,6 @@
 #include <string.h>
 
 #define WaitTime 0x1000
-
 
 uint8_t OLED_GRAM[OLED_PAGE_NUM][OLED_SIZE_Y];
 
@@ -280,7 +286,7 @@ void OLED_Full(uint8_t val)
 	}
 }
 /**
-  * @brief  向SSD1302写入ASCII字符串
+  * @brief  向SSD1306写入ASCII字符串
 	* @param  page：页的位置
 	* @param  col：列的位置
 	* @param  str：字符串的首地址
@@ -306,7 +312,7 @@ void OLED_ShowASCIIString(uint8_t page, uint8_t col, char *str)
 	}
 }
 /**
-  * @brief  向SSD1302写入GBK双字节字符串
+  * @brief  向SSD1306写入GBK双字节字符串
 	* @param  page：页的位置
 	* @param  col：列的位置
 	* @param  str：字符串的首地址
@@ -356,7 +362,7 @@ void OLED_ShowCHZHString(uint8_t page, uint8_t col, char *str)
 	}
 }
 /**
-  * @brief  向SSD1302写入GBK字符串
+  * @brief  向SSD1306写入GBK字符串
 	* @param  page：页的位置
 	* @param  col：列的位置
 	* @param  str：字符串的首地址
@@ -591,7 +597,11 @@ void OLED_DrawString(uint8_t x, uint8_t y,char *str, uint8_t size, uint8_t mode)
 	}
 }
 
-//中文测试用例，向显存绘制“山东科技大学”字样
+/**
+  * @brief  中文测试用例，向显存绘制“山东科技大学”等字样
+	* @param  无
+  * @retval 无
+  */
 void OLED_CNZH_Example(void) {
 	OLED_DrawString( 0+ 0+1, 0, "山", 16 ,1);
 	OLED_DrawString(16+ 6+1, 0, "东", 16 ,1);
@@ -602,11 +612,16 @@ void OLED_CNZH_Example(void) {
 	OLED_DrawString(16, 20, "山东科技大学", 16 ,0);
 	OLED_DrawString(16, 40, "github: cnZhiran", 12 ,1);
 }
-//帧率、CPU占用率测试用例，向显存输出随机数模拟的白噪声
-#ifdef	OLED_COMPUT_TRANS_FPS
+
+/**
+  * @brief  帧率、CPU占用率测试用例，向显存输出随机数模拟的白噪声
+	* @param  无
+  * @retval 无
+  */
 void OLED_Simulated_Noise_Example(void) { //<10Hz
 	int x,y,m;
 	char chr[17];
+#ifdef	OLED_COMPUT_TRANS_FPS
 	uint32_t times_n = OLED_SYSTIME_VARIABLE *OLED_SYSTIME_PERIOD /100000;
 	static uint32_t times_l=0;
 	if(times_n != times_l) {
@@ -614,6 +629,7 @@ void OLED_Simulated_Noise_Example(void) { //<10Hz
 		sprintf(chr, "rate:%8.2ffps", fps);
 		OLED_DrawString(0, 0, chr, 16, 1);
 	}
+#endif	/* OLED_COMPUT_TRANS_FPS */
 	
 	//在显存中随机绘制黑点或白点
 	x = rand() %OLED_SIZE_Y;
@@ -621,59 +637,12 @@ void OLED_Simulated_Noise_Example(void) { //<10Hz
 	m = rand() %2;
 	OLED_DrawPoint(x,y,m);
 }
-#else		/* OLED_COMPUT_TRANS_FPS */
-void OLED_Simulated_Noise_Example(void) {
-	int x,y,m;
-	
-	//在显存中随机绘制黑点或白点
-	x = rand() %OLED_SIZE_Y;
-	y = rand() %OLED_SIZE_X;
-	m = rand() %2;
-	OLED_DrawPoint(x,y,m);
-}
-#endif	/* OLED_COMPUT_TRANS_FPS */
 
-//帧率测试用例，向显存输出不同帧率的移动的数字
-//void OLED_Frame_Example(void) {
-//#if (OLED_SIZE_Y >= 128)
-//	unsigned char pos = (uint32_t)(SYSTIME_VARIABLE *SYSTIME_PERIOD) /10000 %109;
-//#elif (OLED_SIZE_Y >= 96)
-//	unsigned char pos = (uint32_t)(SYSTIME_VARIABLE *SYSTIME_PERIOD) /10000 %73;
-//#elif (OLED_SIZE_Y >= 64)
-//	unsigned char pos = (uint32_t)(SYSTIME_VARIABLE *SYSTIME_PERIOD) /10000 %49;
-//#elif (OLED_SIZE_Y >= 48)
-//	unsigned char pos = (uint32_t)(SYSTIME_VARIABLE *SYSTIME_PERIOD) /10000 %25;
-//#endif
-//	static unsigned char pos_l=0;
-//	if(pos_l != pos) {
-//		if(pos % 2 == 0){
-//			pos_l = pos;
-//			memset(OLED_GRAM[0], 0x00, pos);
-//			memset(OLED_GRAM[1], 0x00, pos);
-//			OLED_DrawChar(pos   , 0, '5', 16, 1);
-//			OLED_DrawChar(pos+ 8, 0, '0', 16, 1);
-//		}
-//		if(pos % 3 == 0){
-//			memset(OLED_GRAM[2], 0x00, pos);
-//			memset(OLED_GRAM[3], 0x00, pos);
-//			OLED_DrawChar(pos   , 16, '3', 16, 1);
-//			OLED_DrawChar(pos+ 8, 16, '3', 16, 1);
-//		}
-//		if(pos % 4 == 0){
-//			memset(OLED_GRAM[4], 0x00, pos);
-//			memset(OLED_GRAM[5], 0x00, pos);
-//			OLED_DrawChar(pos   , 32, '2', 16, 1);
-//			OLED_DrawChar(pos+ 8, 32, '5', 16, 1);
-//		}
-//		if(pos % 6 == 0){
-//			memset(OLED_GRAM[6], 0x00, pos);
-//			memset(OLED_GRAM[7], 0x00, pos);
-//			OLED_DrawChar(pos   , 48, '1', 16, 1);
-//			OLED_DrawChar(pos+ 8, 48, '7', 16, 1);
-//		}
-//	}
-//}
-//帧率测试用例，向显存输出不同帧率的移动的数字
+/**
+  * @brief  帧率测试用例，向显存输出不同帧率的移动的数字
+	* @param  无
+  * @retval 无
+  */
 void OLED_Frame_Example(void) {
 #if (OLED_SIZE_Y >= 128)
 	#define OLED_POS_MAX 108
@@ -726,6 +695,11 @@ void OLED_Frame_Example(void) {
 }
 
 #ifdef	USE_U8G2_EXAMPLE
+/**
+  * @brief  四种测试用例循环展示
+	* @param  u8g2：u8g2库使用的结构体
+  * @retval 无
+  */
 void OLED_Example_Loop(u8g2_t *u8g2) {
 	static uint8_t stat=0;
 	static uint32_t times_l=0, times_d=0;
@@ -759,6 +733,11 @@ void OLED_Example_Loop(u8g2_t *u8g2) {
 	}
 }
 #else		/* USE_U8G2_EXAMPLE */
+/**
+  * @brief  三种测试用例循环展示
+	* @param  无
+  * @retval 无
+  */
 void OLED_Example_Loop(void) {
 	static uint8_t stat=0;
 	static uint32_t times_l=0, times_d=0;
@@ -790,13 +769,23 @@ void OLED_Example_Loop(void) {
 }
 #endif	/* USE_U8G2_EXAMPLE */
 
-//清空函数	  
+/**
+  * @brief  显存清空函数
+	* @param  无
+  * @retval 无
+  */
 void OLED_Clear_Gram(void)  
-{  
-	uint8_t i,n;  
-	for(i=0;i<8;i++)for(n=0;n<128;n++)OLED_GRAM[i][n]=0x00;
+{
+	memset(OLED_GRAM, 0x00, OLED_PAGE_NUM*OLED_SIZE_Y);
 }
-//刷新函数
+
+/**
+  * @brief  向SSD1603刷写显存
+	* @param  sync：刷写方式
+	*		@arg	0：异步方式：CPU不等待刷写结束
+	*		@arg	1：同步方式：CPU等待刷写结束
+  * @retval 若为-1则刷写失败，为0刷写成功或开始
+  */
 int OLED_Refresh_Gram(int sync)
 {
 	int32_t timeout;
@@ -854,15 +843,30 @@ int OLED_Refresh_Gram(int sync)
 	return 0;
 }
 
+/**
+  * @brief  开始向SSD1603连续刷写显存
+	* @param  无
+  * @retval 若为-1则失败，为0成功
+  */
 int OLED_Continuous_Refresh_Start(void) {
 	continuous_refresh = 1;
 	return OLED_Refresh_Gram(0);
 }
 
+/**
+  * @brief  停止向SSD1603连续刷写显存
+	* @param  无
+  * @retval 无
+  */
 void OLED_Continuous_Refresh_Stop(void) {
 	continuous_refresh = 0;
 }
 
+/**
+  * @brief  DMA1中断服务函数
+	* @param  无
+  * @retval 无
+  */
 void DMA1_Channel6_IRQHandler() {
 	int timeout = WaitTime;
 	if(DMA_GetITStatus(DMA1_IT_TC6)) {
@@ -895,10 +899,23 @@ void DMA1_Channel6_IRQHandler() {
 }
 	 
 #ifdef	SUPPORT_U8G2
+/**
+  * @brief  u8g2空回调函数
+	* @param  u8x8：u8g2库使用的结构体
+	* @param  msg：命令
+	* @param  arg_int：uint8_t类型的命令参数
+	* @param  arg_ptr：指针类型的命令参数
+  * @retval 无
+  */
 uint8_t OLED_u8x8_empty_cb(u8x8_t *u8x8, uint8_t msg, U8X8_UNUSED uint8_t arg_int, U8X8_UNUSED void *arg_ptr) {
 	return NULL;
 }
 
+/**
+  * @brief  支持u8g2的初始化函数
+	* @param  无
+  * @retval 返回u8g2库需要使用的结构体
+  */
 u8g2_t *OLED_U8G2_Init(void) {
 	static u8g2_t u8g2;
 	uint8_t *buffer = (uint8_t *)OLED_GRAM;
@@ -909,6 +926,11 @@ u8g2_t *OLED_U8G2_Init(void) {
 }
 
 #ifdef	USE_U8G2_EXAMPLE
+/**
+  * @brief  u8g2提供的测试样例
+	* @param  u8g2：u8g2库使用的结构体
+  * @retval 无
+  */
 void OLED_U8G2_Draw_Example(u8g2_t *u8g2)
 {
     u8g2_SetFontMode(u8g2, 1); 

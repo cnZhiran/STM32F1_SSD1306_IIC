@@ -36,7 +36,7 @@
 
 #define USE_GRAM	//启用图形缓存，以及它的基本控制和绘制函数
 #define USE_PAGE	//启用页绘制函数（非DMA方式）
-//#define SUPPORT_U8G2	//启用u8g2第三方图形库，若不启用，可将组u8g2删除，以减少程序大小
+#define SUPPORT_U8G2	//启用u8g2第三方图形库，若不启用，可将组u8g2删除，以减少程序大小
 	 
 #ifdef	SUPPORT_U8G2	
 #define	USE_U8G2_EXAMPLE		//启用u8g2绘制测试用例
@@ -77,7 +77,6 @@
 
 /* Includes ------------------------------------------------------------------*/	 
 #include "stm32f10x.h"                  // Device header
-#include "ctrl.h"
 #ifdef	SUPPORT_U8G2
 	#include "u8g2.h"
 #endif	/* SUPPORT_U8G2 */
@@ -86,6 +85,7 @@
   */	 
 #ifdef	OLED_COMPUT_TRANS_FPS
 extern float fps;
+extern uint32_t OLED_SYSTIME_VARIABLE;
 #endif	/* OLED_COMPUT_TRANS_FPS */
 	 
 /**
