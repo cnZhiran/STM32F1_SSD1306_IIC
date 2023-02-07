@@ -25,13 +25,18 @@
   * @{
   */
 	 
+#define OLED_IICx					I2C1
+#define OLED_IIC_GPIOx		GPIOB
+#define OLED_IIC_PIN			GPIO_Pin_6|GPIO_Pin_7
+//#define OLED_IIC_REMAP	GPIO_Remap_I2C1
+	 
 #define OLED_SIZE_X 64
 #define OLED_SIZE_Y 128
 #define OLED_PAGE_NUM OLED_SIZE_X/8
 
 #define USE_GRAM	//启用图形缓存，以及它的基本控制和绘制函数
 #define USE_PAGE	//启用页绘制函数（非DMA方式）
-#define SUPPORT_U8G2	//启用u8g2第三方图形库，若不启用，可将组u8g2删除，以减少程序大小
+//#define SUPPORT_U8G2	//启用u8g2第三方图形库，若不启用，可将组u8g2删除，以减少程序大小
 	 
 #ifdef	SUPPORT_U8G2	
 #define	USE_U8G2_EXAMPLE		//启用u8g2绘制测试用例
@@ -43,22 +48,24 @@
 #ifdef	USE_GRAM
 #define USE_GRAM_DRAW_BASE_FUNCTION	//使用图形缓存基本绘制函数
 #ifdef	USE_GRAM_DRAW_BASE_FUNCTION
-#define COMPUT_TRANS_FPS					//计算传输帧率
+#define OLED_COMPUT_TRANS_FPS					//计算传输帧率
 #define USE_GRAM_EXAMPLE		//启用图形缓存的绘制测试用例
 #endif  /* USE_GRAM_DRAW_BASE_FUNCTION */
 #endif	/* USE_GRAM */
 
-#if defined COMPUT_TRANS_FPS || defined USE_GRAM_EXAMPLE	//计算帧率和测试用例需要使用一个可靠的系统时间计数变量
-#define SYSTIME_VARIABLE	times		//系统时间计数变量名称
-#define SYSTIME_PERIOD		10			//计数一次的周期，单位微秒us
-#define SYSTIME_SIZE			0				//计数变量的范围，UINT32_MAX+1等价于0
-//如果您使用SysTick->VAL寄存器作为系统时间，请尽可能使它的置数周期大于100ms
-//#define SYSTIME_DOWN_CONT				//SysTick是个减计数器
-//#define SYSTIME_VARIABLE	SysTick->VAL
-//#define SYSTIME_PERIOD		1000000.0/((SysTick->CTRL & SysTick_CTRL_CLKSOURCE_Msk) ? PCLK2_FREQUENCY : PCLK2_FREQUENCY/8)			//计数一次的周期，单位微秒us
-//#define SYSTIME_SIZE			SysTick->LOAD +1
+#if defined OLED_COMPUT_TRANS_FPS || defined USE_GRAM_EXAMPLE	//计算帧率和测试用例需要使用一个可靠的系统时间计数变量，不需要此功能可以注释掉
+#define OLED_SYSTIME_VARIABLE	times		//系统时间计数变量名称
+#define OLED_SYSTIME_PERIOD		10			//计数一次的周期，单位微秒us
+#define OLED_SYSTIME_SIZE			500000				//计数变量的范围，UINT32_MAX+1等价于0
+//以下是一个示例，使用SysTick->VAL寄存器作为系统时间
+//#define OLED_SYSTIME_DOWN_CONT				//SysTick是个减计数器
+//#define OLED_SYSTIME_USE_SYSTICK			//使用SysTick->VAL作为计数器，注意浮点运算用时较长
+//#define OLED_SYSTIME_VARIABLE	SysTick->VAL
+//#define OLED_SYSTIME_PERIOD		(1000000.0/((SysTick->CTRL & SysTick_CTRL_CLKSOURCE_Msk) ? SystemCoreClock : SystemCoreClock/8))			//计数一次的周期，单位微秒us
+//#define OLED_SYSTIME_SIZE			SysTick->LOAD +1
 
-#endif  /* COMPUT_TRANS_FPS || USE_GRAM_EXAMPLE */
+
+#endif  /* OLED_COMPUT_TRANS_FPS || USE_GRAM_EXAMPLE */
 	 
 /**
   * @}
@@ -77,9 +84,9 @@
 /** @defgroup OLED_Exported_Variables
   * @{
   */	 
-#ifdef	COMPUT_TRANS_FPS
+#ifdef	OLED_COMPUT_TRANS_FPS
 extern float fps;
-#endif	/* COMPUT_TRANS_FPS */
+#endif	/* OLED_COMPUT_TRANS_FPS */
 	 
 /**
   * @}
@@ -88,6 +95,9 @@ extern float fps;
 /** @defgroup OLED_Exported_Functions
   * @{
   */
+//IIC接口控制函数
+int OLED_send_cmd(uint8_t o_command);
+int OLED_send_data(uint8_t o_data);
 
 //oled控制函数		   				   		    
 void OLED_Init(void);
@@ -100,8 +110,8 @@ void OLED_SetColumn(uint8_t col);
 void OLED_SetPos(uint8_t page, uint8_t col);
 
 //页绘制函数
-#ifdef	USE_PAGE
 void OLED_Clear(void);
+#ifdef	USE_PAGE
 void OLED_Full(uint8_t val);
 void OLED_ShowASCIIString(uint8_t page, uint8_t col, char *str);
 void OLED_ShowCHZHString(uint8_t page, uint8_t col, char *str);
@@ -117,12 +127,12 @@ void OLED_Continuous_Refresh_Stop(void);
 
 #ifdef	USE_GRAM_DRAW_BASE_FUNCTION
 //图形缓存基本绘制函数
-void OLED_DrawPoint(uint8_t x,uint8_t y,uint8_t t);
+void OLED_DrawPoint(uint8_t x,uint8_t y,uint8_t mode);
 void OLED_DrawByte(uint8_t x, uint8_t y,uint8_t data, uint8_t mode);
 //void OLED_DrawChar(uint8_t x,uint8_t y,uint8_t chr,uint8_t size,uint8_t mode);
 #define OLED_DrawChar(x,y,chr,size,mode) OLED_DrawASCIIChar(x,y,chr,size,mode)
 void OLED_DrawASCIIChar(uint8_t x, uint8_t y, uint8_t chr, uint8_t size, uint8_t mode);
-void OLED_DrawCNZHString(uint8_t x, uint8_t y, char *str, uint8_t size, uint8_t mode);
+void OLED_DrawCNZHString(uint8_t x, uint8_t y, char *str, uint8_t mode);
 void OLED_DrawString(uint8_t x, uint8_t y, char *str, uint8_t size, uint8_t mode);
 
 #ifdef	USE_GRAM_EXAMPLE

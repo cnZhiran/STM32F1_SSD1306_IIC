@@ -94,7 +94,15 @@ void Interrpt_Init(void) {
 int main(void) {
 	Clock_Init();
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);	//关闭JTAG保留SW
-	SysTick_Config(SystemCoreClock / 100000);												//SysTick 每10us中断一次
+	SysTick_Config(SystemCoreClock / 100000);									//SysTick 每10us中断一次
+	
+#ifdef OLED_SYSTIME_USE_SYSTICK		//使用SysTick->VAL作为计数器
+	SysTick->LOAD  = 0xFFFFFF;																	/* set reload register */
+  NVIC_SetPriority (SysTick_IRQn, (1<<__NVIC_PRIO_BITS) - 1);	/* set Priority for Cortex-M0 System Interrupts */
+  SysTick->VAL   = 0;																					/* Load the SysTick Counter Value */
+  SysTick->CTRL  = SysTick_CTRL_ENABLE_Msk;										/* Enable SysTick IRQ and SysTick Timer */
+#endif /* OLED_SYSTIME_USE_SYSTICK */
+	
 	UART1_Init(115200);
 	UART3_Init(115200);
 	OLED_Init();
@@ -103,7 +111,7 @@ int main(void) {
 	//开始使用DMA方式刷新屏幕
 	while(OLED_Continuous_Refresh_Start());
 	
-	u8g2_t *u8g2 = OLED_U8G2_Init();
+	//u8g2_t *u8g2 = OLED_U8G2_Init();
 
 	//初始化结束
 	printf("init_already\n");
@@ -111,9 +119,13 @@ int main(void) {
 	
 	while(1){
 		//每10秒向串口输出帧率
+#ifdef OLED_COMPUT_TRANS_FPS
 		if(times % 1000000 == 0)
 			printf("FPS:%.2f\n", fps);
-		OLED_Example_Loop(u8g2);
+#endif /* OLED_COMPUT_TRANS_FPS */
+
+		//OLED_Example_Loop(u8g2);
+		OLED_Example_Loop();
 	}
 }
 

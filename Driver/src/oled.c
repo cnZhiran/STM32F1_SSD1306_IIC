@@ -15,8 +15,12 @@
 
 
 uint8_t OLED_GRAM[OLED_PAGE_NUM][OLED_SIZE_Y];
+
+#ifdef	OLED_COMPUT_TRANS_FPS
 float fps;
-int continuous_refresh=0,dma1_l6_busy=0;
+#endif	/* OLED_COMPUT_TRANS_FPS */
+
+static int continuous_refresh=0,dma1_l6_busy=0;
 
 void OLED_DMAConfig(void);
 
@@ -24,96 +28,94 @@ void OLED_DMAConfig(void);
 /**
   * @brief  通过IIC接口向SSD1306发送命令
   * @param  o_command: 命令内容
-	* @note   该函数不需要被外部调用
   * @retval 如果发生错误则返回-1，否则返回0
   */
-int OLED_send_cmd(unsigned char o_command)
+int OLED_send_cmd(uint8_t o_command)
 {
 	int timeout = WaitTime;
-	while(I2C_GetFlagStatus(I2C1, I2C_FLAG_BUSY)) {
+	while(I2C_GetFlagStatus(OLED_IICx, I2C_FLAG_BUSY)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	I2C_GenerateSTART(I2C1, ENABLE);
+	I2C_GenerateSTART(OLED_IICx, ENABLE);
 	timeout = WaitTime;
-	while(!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT)) {
+	while(!I2C_CheckEvent(OLED_IICx, I2C_EVENT_MASTER_MODE_SELECT)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	I2C_Send7bitAddress(I2C1, 0x78, I2C_Direction_Transmitter);
+	I2C_Send7bitAddress(OLED_IICx, 0x78, I2C_Direction_Transmitter);
 	timeout = WaitTime;
-	while(!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)) {
+	while(!I2C_CheckEvent(OLED_IICx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	I2C_SendData(I2C1, 0x00);
+	I2C_SendData(OLED_IICx, 0x00);
 	timeout = WaitTime;
-	while(!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_BYTE_TRANSMITTED)) {
+	while(!I2C_CheckEvent(OLED_IICx, I2C_EVENT_MASTER_BYTE_TRANSMITTED)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	I2C_SendData(I2C1, o_command);
+	I2C_SendData(OLED_IICx, o_command);
 	timeout = WaitTime;
-	while(!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_BYTE_TRANSMITTED)) {
+	while(!I2C_CheckEvent(OLED_IICx, I2C_EVENT_MASTER_BYTE_TRANSMITTED)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	I2C_GenerateSTOP(I2C1, ENABLE);
+	I2C_GenerateSTOP(OLED_IICx, ENABLE);
 	timeout = WaitTime;
-	while(I2C_GetFlagStatus(I2C1, I2C_FLAG_BUSY)) {
+	while(I2C_GetFlagStatus(OLED_IICx, I2C_FLAG_BUSY)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	(void) I2C1->SR1;
-	(void) I2C1->SR2;
+	(void) OLED_IICx->SR1;
+	(void) OLED_IICx->SR2;
 	return 0;
 }
 
 /**
   * @brief  通过IIC接口向SSD1306发送数据
   * @param  o_data: 数据内容
-	* @note   该函数不需要被外部调用
   * @retval 如果发生错误则返回-1，否则返回0
   */
-int OLED_send_data(unsigned char o_data)
+int OLED_send_data(uint8_t o_data)
 {
 	int timeout = WaitTime;
-	while(I2C_GetFlagStatus(I2C1, I2C_FLAG_BUSY)) {
+	while(I2C_GetFlagStatus(OLED_IICx, I2C_FLAG_BUSY)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	I2C_GenerateSTART(I2C1, ENABLE);
+	I2C_GenerateSTART(OLED_IICx, ENABLE);
 	timeout = WaitTime;
-	while(!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT)) {
+	while(!I2C_CheckEvent(OLED_IICx, I2C_EVENT_MASTER_MODE_SELECT)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	I2C_Send7bitAddress(I2C1, 0x78, I2C_Direction_Transmitter);
+	I2C_Send7bitAddress(OLED_IICx, 0x78, I2C_Direction_Transmitter);
 	timeout = WaitTime;
-	while(!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)) {
+	while(!I2C_CheckEvent(OLED_IICx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	I2C_SendData(I2C1, 0x40);
+	I2C_SendData(OLED_IICx, 0x40);
 	timeout = WaitTime;
-	while(!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_BYTE_TRANSMITTED)) {
+	while(!I2C_CheckEvent(OLED_IICx, I2C_EVENT_MASTER_BYTE_TRANSMITTED)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	I2C_SendData(I2C1, o_data);
+	I2C_SendData(OLED_IICx, o_data);
 	timeout = WaitTime;
-	while(!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_BYTE_TRANSMITTED)) {
+	while(!I2C_CheckEvent(OLED_IICx, I2C_EVENT_MASTER_BYTE_TRANSMITTED)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	I2C_GenerateSTOP(I2C1, ENABLE);
+	I2C_GenerateSTOP(OLED_IICx, ENABLE);
 	timeout = WaitTime;
-	while(I2C_GetFlagStatus(I2C1, I2C_FLAG_BUSY)) {
+	while(I2C_GetFlagStatus(OLED_IICx, I2C_FLAG_BUSY)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	(void) I2C1->SR1;
-	(void) I2C1->SR2;
+	(void) OLED_IICx->SR1;
+	(void) OLED_IICx->SR2;
 	return 0;
 }
 
@@ -128,10 +130,14 @@ void OLED_Init(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 	I2C_InitTypeDef I2C_InitStructure;
 	
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6|GPIO_Pin_7;
+  GPIO_InitStructure.GPIO_Pin = OLED_IIC_PIN;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_OD;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
+  GPIO_Init(OLED_IIC_GPIOx, &GPIO_InitStructure);
+	
+#ifdef OLED_IIC_REMAP
+	GPIO_PinRemapConfig(OLED_IIC_REMAP, ENABLE);
+#endif /* OLED_IIC_REMAP */
 	
 	I2C_InitStructure.I2C_Mode = I2C_Mode_I2C;
 	I2C_InitStructure.I2C_Ack = I2C_Ack_Enable;
@@ -139,9 +145,9 @@ void OLED_Init(void)
 	I2C_InitStructure.I2C_OwnAddress1 = 0x78;
 	I2C_InitStructure.I2C_ClockSpeed = 400000;
 	I2C_InitStructure.I2C_DutyCycle = I2C_DutyCycle_2;
-	I2C_Init(I2C1, &I2C_InitStructure);
+	I2C_Init(OLED_IICx, &I2C_InitStructure);
 	
-	I2C_Cmd(I2C1, ENABLE);
+	I2C_Cmd(OLED_IICx, ENABLE);
 	
 	for(i=0;i<27;i++) {
 		while(OLED_send_cmd(OLED_init_cmd[i]));
@@ -159,7 +165,7 @@ void OLED_Init(void)
 void OLED_DMAConfig(void) {
 	DMA_InitTypeDef DMA_InitStructure;
 	
-	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&(I2C1->DR);
+	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&(OLED_IICx->DR);
 	DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)OLED_GRAM[0];
 	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
@@ -256,6 +262,8 @@ void OLED_Clear(void)
 		}
 	}
 }
+
+#ifdef	USE_PAGE
 /**
   * @brief  填充函数
 	* @param  val: 要全屏填充的内容
@@ -271,10 +279,13 @@ void OLED_Full(uint8_t val)
 		}
 	}
 }
-//显示ASC字符
-//page:0~7
-//col:0~127
-//str:字符串首地址
+/**
+  * @brief  向SSD1302写入ASCII字符串
+	* @param  page：页的位置
+	* @param  col：列的位置
+	* @param  str：字符串的首地址
+  * @retval 无
+  */
 void OLED_ShowASCIIString(uint8_t page, uint8_t col, char *str)
 {
 	uint8_t c=0,i=0,j=0;
@@ -283,7 +294,7 @@ void OLED_ShowASCIIString(uint8_t page, uint8_t col, char *str)
 	{
 		c = str[j]-32;
 		if(col>120){col=0;page++;}
-		if(page>7){col=page=0;OLED_Clear();}
+		if(page>6){col=page=0;OLED_Clear();}
 		OLED_SetPos(page,col);
 		for(i=0;i<8;i++)
 			OLED_send_data(oled_ascii_0816[c*16+i]);
@@ -294,6 +305,13 @@ void OLED_ShowASCIIString(uint8_t page, uint8_t col, char *str)
 		j++;
 	}
 }
+/**
+  * @brief  向SSD1302写入GBK双字节字符串
+	* @param  page：页的位置
+	* @param  col：列的位置
+	* @param  str：字符串的首地址
+  * @retval 无
+  */
 void OLED_ShowCHZHString(uint8_t page, uint8_t col, char *str)
 {
 	uint8_t i,j;
@@ -337,7 +355,13 @@ void OLED_ShowCHZHString(uint8_t page, uint8_t col, char *str)
 		}
 	}
 }
-
+/**
+  * @brief  向SSD1302写入GBK字符串
+	* @param  page：页的位置
+	* @param  col：列的位置
+	* @param  str：字符串的首地址
+  * @retval 无
+  */
 void OLED_ShowString(uint8_t page, uint8_t col, char *str)
 {
 	char chr[3];
@@ -356,82 +380,54 @@ void OLED_ShowString(uint8_t page, uint8_t col, char *str)
 			if(col>120){col=0;page+=2;}
 			if(page>6){col=page=0;OLED_Clear();}
 			chr[0] = str[0];
-			chr[1] = '\0';          //字母占一个字节
-			OLED_ShowASCIIString(page, col, chr);  //显示字母
+			chr[1] = '\0';          //ASCII占一个字节
+			OLED_ShowASCIIString(page, col, chr);  //显示ASCII字符
 			str += 1;
 			col += 8;
 		}
 	}
 }
+#endif	/* USE_PAGE */
 
-//画点 
-//x:0~127
-//y:0~63
-//t:1 填充 0,清空				   
-void OLED_DrawPoint(uint8_t x,uint8_t y,uint8_t t)
+/**
+  * @brief  向显存绘制一个点
+	* @param  x：行的位置
+	* @param  y：列的位置
+	* @param  mode：点的样式
+	*		@arg	0：清空
+	*		@arg	1：填充
+	*		@arg	2：取反
+  * @retval 无
+  */		   
+void OLED_DrawPoint(uint8_t x,uint8_t y,uint8_t mode)
 {
 	uint8_t page,temp=0;
 	if(x>127||y>63)return;//超出范围了.
 	page = y/8;
 	temp=1<<(y % 8);
-	if(t)OLED_GRAM[page][x]|=temp;
+	if(mode == 2) OLED_GRAM[page][x]^=temp;
+	else if(mode == 1)OLED_GRAM[page][x]|=temp;
 	else OLED_GRAM[page][x]&=~temp;	    
 }
 
-////在指定位置绘制一个字符,包括部分字符
-////x:0~127
-////y:0~63
-////mode:0,反白显示;1,正常显示				 
-////size:选择字体 16/12 
-//void OLED_DrawChar(uint8_t x,uint8_t y,uint8_t chr,uint8_t size,uint8_t mode)
-//{      			    
-//	uint8_t temp,i,j;
-//	chr=chr-' ';//得到偏移后的值		
-//	 
-//	if(size==12) {//调用0612字体 
-//		for(i=0;i<6;i++) {  
-//			temp=oled_ascii_0612[chr*12+i];
-//			OLED_DrawByte(x+i, y, temp, mode);
-////			for(j=0;j<8;j++) {
-////				if(temp & 0x01)
-////					OLED_DrawPoint(x+i,y+j,mode);
-////				else 
-////					OLED_DrawPoint(x+i,y+j,!mode);
-////				temp>>=1;
-////			}
-//		}
-//		for(i=0;i<6;i++) {  
-//			temp=oled_ascii_0612[chr*12+i+6];                         
-//			for(j=8;j<12;j++) {
-//				if(temp & 0x01)
-//					OLED_DrawPoint(x+i,y+j,mode);
-//				else 
-//					OLED_DrawPoint(x+i,y+j,!mode);
-//				temp>>=1;
-//			}
-//		}
-//	}
-//	else {//调用0816字体
-//		for(i=0;i<8;i++) {
-//			temp=oled_ascii_0816[chr*16+i];
-//			OLED_DrawByte(x+i, y, temp, mode);
-//		}
-//		for(i=0;i<8;i++) {
-//			temp=oled_ascii_0816[chr*16+i+8];
-//			OLED_DrawByte(x+i, y+8, temp, mode);
-//		}
-//	}
-//}
-//在指定位置绘制一个ASCII字符,包括部分字符
-//x:0~127
-//y:0~63
-//mode:0,反白显示;1,正常显示				 
-//size:选择字体 16/12 
+/**
+  * @brief  向显存绘制一个ASCII字符
+	* @param  x：行的位置
+	* @param  y：列的位置
+	* @param  size：字符的大小
+	*		@arg	12：0612字体
+	*		@arg	16：0816字体
+	* @param  mode：字符的样式
+	*		@arg	0：清空
+	*		@arg	1：填充
+  * @retval 无
+  */
 void OLED_DrawASCIIChar(uint8_t x, uint8_t y, uint8_t chr, uint8_t size, uint8_t mode)
 {      			    
 	uint8_t temp,i,j;
 	chr=chr-' ';//得到偏移后的值		
 	 
+	if(x>127||y>63)return;//超出范围了.
 	if(size==12) {//调用0612字体 
 		for(i=0;i<6;i++) {  
 			temp=oled_ascii_0612[chr*12+i];  	                          
@@ -477,6 +473,17 @@ void OLED_DrawASCIIChar(uint8_t x, uint8_t y, uint8_t chr, uint8_t size, uint8_t
 		}
 	}
 }
+
+/**
+  * @brief  向显存绘制一个字节
+	* @param  x：行的位置
+	* @param  y：列的位置
+	* @param  data：字节的内容
+	* @param  mode：样式
+	*		@arg	0：清空
+	*		@arg	1：填充
+  * @retval 无
+  */
 void OLED_DrawByte(uint8_t x, uint8_t y, uint8_t data, uint8_t mode) {
 	uint8_t page,bias,temp,mask;
 	if(x>127||y>56)return;//超出范围了.
@@ -495,12 +502,17 @@ void OLED_DrawByte(uint8_t x, uint8_t y, uint8_t data, uint8_t mode) {
 		OLED_GRAM[page][x]&=temp | ~mask;
 	}
 }
-//在指定位置绘制一个汉字字符,包括部分字符
-//x:0~127
-//y:0~63
-//mode:0,反白显示;1,正常显示				 
-//size:选择字体 16/12 
-void OLED_DrawCNZHString(uint8_t x, uint8_t y, char *str, uint8_t size, uint8_t mode)
+
+/**
+  * @brief  向显存绘制一个汉字字符串
+	* @param  x：行的位置
+	* @param  y：列的位置
+	* @param  mode：字符的样式
+	*		@arg	0：清空
+	*		@arg	1：填充
+  * @retval 无
+  */
+void OLED_DrawCNZHString(uint8_t x, uint8_t y, char *str, uint8_t mode)
 {
 	uint8_t i,j;
 	
@@ -531,11 +543,18 @@ void OLED_DrawCNZHString(uint8_t x, uint8_t y, char *str, uint8_t size, uint8_t 
 	}
 }
 
-//显示字符串
-//x,y:起点坐标  
-//*p:字符串起始地址
-//size:字体大小
-//mode:0,反白显示;1,正常显示
+/**
+  * @brief  向显存绘制字符串
+	* @param  x：行的位置
+	* @param  y：列的位置
+	* @param  size：字符的大小
+	*		@arg	12：0612字体
+	*		@arg	16：0816字体
+	* @param  mode：字符的样式
+	*		@arg	0：清空
+	*		@arg	1：填充
+  * @retval 无
+  */
 void OLED_DrawString(uint8_t x, uint8_t y,char *str, uint8_t size, uint8_t mode)
 {
 	char chr[3];
@@ -556,7 +575,7 @@ void OLED_DrawString(uint8_t x, uint8_t y,char *str, uint8_t size, uint8_t mode)
 				chr[0] = str[0];
 				chr[1] = str[1];
 				chr[2] = '\0';          //汉字为两个字节
-				OLED_DrawCNZHString(x, y, chr, 16, mode);  //显示汉字
+				OLED_DrawCNZHString(x, y, chr, mode);  //显示汉字
 				str += 2;
 				x += 16;
 			}else {
@@ -584,11 +603,14 @@ void OLED_CNZH_Example(void) {
 	OLED_DrawString(16, 40, "github: cnZhiran", 12 ,1);
 }
 //帧率、CPU占用率测试用例，向显存输出随机数模拟的白噪声
-#ifdef	COMPUT_TRANS_FPS
-void OLED_Simulated_Noise_Example(void) {
+#ifdef	OLED_COMPUT_TRANS_FPS
+void OLED_Simulated_Noise_Example(void) { //<10Hz
 	int x,y,m;
 	char chr[17];
-	if(SYSTIME_VARIABLE % 20000 == 0) {
+	uint32_t times_n = OLED_SYSTIME_VARIABLE *OLED_SYSTIME_PERIOD /100000;
+	static uint32_t times_l=0;
+	if(times_n != times_l) {
+		times_l = times_n;
 		sprintf(chr, "rate:%8.2ffps", fps);
 		OLED_DrawString(0, 0, chr, 16, 1);
 	}
@@ -599,7 +621,7 @@ void OLED_Simulated_Noise_Example(void) {
 	m = rand() %2;
 	OLED_DrawPoint(x,y,m);
 }
-#else		/* COMPUT_TRANS_FPS */
+#else		/* OLED_COMPUT_TRANS_FPS */
 void OLED_Simulated_Noise_Example(void) {
 	int x,y,m;
 	
@@ -609,23 +631,74 @@ void OLED_Simulated_Noise_Example(void) {
 	m = rand() %2;
 	OLED_DrawPoint(x,y,m);
 }
-#endif	/* COMPUT_TRANS_FPS */
+#endif	/* OLED_COMPUT_TRANS_FPS */
 
+//帧率测试用例，向显存输出不同帧率的移动的数字
+//void OLED_Frame_Example(void) {
+//#if (OLED_SIZE_Y >= 128)
+//	unsigned char pos = (uint32_t)(SYSTIME_VARIABLE *SYSTIME_PERIOD) /10000 %109;
+//#elif (OLED_SIZE_Y >= 96)
+//	unsigned char pos = (uint32_t)(SYSTIME_VARIABLE *SYSTIME_PERIOD) /10000 %73;
+//#elif (OLED_SIZE_Y >= 64)
+//	unsigned char pos = (uint32_t)(SYSTIME_VARIABLE *SYSTIME_PERIOD) /10000 %49;
+//#elif (OLED_SIZE_Y >= 48)
+//	unsigned char pos = (uint32_t)(SYSTIME_VARIABLE *SYSTIME_PERIOD) /10000 %25;
+//#endif
+//	static unsigned char pos_l=0;
+//	if(pos_l != pos) {
+//		if(pos % 2 == 0){
+//			pos_l = pos;
+//			memset(OLED_GRAM[0], 0x00, pos);
+//			memset(OLED_GRAM[1], 0x00, pos);
+//			OLED_DrawChar(pos   , 0, '5', 16, 1);
+//			OLED_DrawChar(pos+ 8, 0, '0', 16, 1);
+//		}
+//		if(pos % 3 == 0){
+//			memset(OLED_GRAM[2], 0x00, pos);
+//			memset(OLED_GRAM[3], 0x00, pos);
+//			OLED_DrawChar(pos   , 16, '3', 16, 1);
+//			OLED_DrawChar(pos+ 8, 16, '3', 16, 1);
+//		}
+//		if(pos % 4 == 0){
+//			memset(OLED_GRAM[4], 0x00, pos);
+//			memset(OLED_GRAM[5], 0x00, pos);
+//			OLED_DrawChar(pos   , 32, '2', 16, 1);
+//			OLED_DrawChar(pos+ 8, 32, '5', 16, 1);
+//		}
+//		if(pos % 6 == 0){
+//			memset(OLED_GRAM[6], 0x00, pos);
+//			memset(OLED_GRAM[7], 0x00, pos);
+//			OLED_DrawChar(pos   , 48, '1', 16, 1);
+//			OLED_DrawChar(pos+ 8, 48, '7', 16, 1);
+//		}
+//	}
+//}
 //帧率测试用例，向显存输出不同帧率的移动的数字
 void OLED_Frame_Example(void) {
 #if (OLED_SIZE_Y >= 128)
-	unsigned char pos = SYSTIME_VARIABLE *SYSTIME_PERIOD /10000 %109;
+	#define OLED_POS_MAX 108
 #elif (OLED_SIZE_Y >= 96)
-	unsigned char pos = SYSTIME_VARIABLE *SYSTIME_PERIOD /10000 %73;
+	#define OLED_POS_MAX 72
 #elif (OLED_SIZE_Y >= 64)
-	unsigned char pos = SYSTIME_VARIABLE *SYSTIME_PERIOD /10000 %49;
+	#define OLED_POS_MAX 48
 #elif (OLED_SIZE_Y >= 48)
-	unsigned char pos = SYSTIME_VARIABLE *SYSTIME_PERIOD /10000 %25;
+	#define OLED_POS_MAX 24
 #endif
-	static unsigned char pos_l=0;
-	if(pos_l != pos) {
+	static uint8_t pos=8;
+	static uint32_t times_l=0, times_d=0;
+	uint32_t times_n = OLED_SYSTIME_VARIABLE;
+#ifdef OLED_SYSTIME_DOWN_CONT
+	times_d += times_l -times_n +((int32_t)(times_l -times_n) < 0 ? OLED_SYSTIME_SIZE : 0);
+#else 
+	times_d += times_n -times_l +((int32_t)(times_n -times_l) < 0 ? OLED_SYSTIME_SIZE : 0);
+#endif /* OLED_SYSTIME_DOWN_CONT */
+	times_l = times_n;
+	if(times_d >= 10000 /OLED_SYSTIME_PERIOD) {
+		times_d = 0;
+		if(++pos > OLED_POS_MAX) {
+			pos = 0;
+		}
 		if(pos % 2 == 0){
-			pos_l = pos;
 			memset(OLED_GRAM[0], 0x00, pos);
 			memset(OLED_GRAM[1], 0x00, pos);
 			OLED_DrawChar(pos   , 0, '5', 16, 1);
@@ -654,11 +727,19 @@ void OLED_Frame_Example(void) {
 
 #ifdef	USE_U8G2_EXAMPLE
 void OLED_Example_Loop(u8g2_t *u8g2) {
-	unsigned char stat=SYSTIME_VARIABLE *SYSTIME_PERIOD /10000000 %4;
-	static unsigned char stat_l=0;
-	if(stat_l != stat) {
+	static uint8_t stat=0;
+	static uint32_t times_l=0, times_d=0;
+	uint32_t times_n = OLED_SYSTIME_VARIABLE;
+#ifdef OLED_SYSTIME_DOWN_CONT
+	times_d += times_l -times_n +((int32_t)(times_l -times_n) < 0 ? OLED_SYSTIME_SIZE : 0);
+#else 
+	times_d += times_n -times_l +((int32_t)(times_n -times_l) < 0 ? OLED_SYSTIME_SIZE : 0);
+#endif /* OLED_SYSTIME_DOWN_CONT */
+	times_l = times_n;
+	if(times_d >= (10000000 /OLED_SYSTIME_PERIOD)) {
+		times_d = 0;
+		if(++stat > 3) stat = 0;
 		OLED_Clear_Gram();
-		stat_l = stat;
 	}
 	switch(stat) {
 		case 0:
@@ -679,11 +760,19 @@ void OLED_Example_Loop(u8g2_t *u8g2) {
 }
 #else		/* USE_U8G2_EXAMPLE */
 void OLED_Example_Loop(void) {
-	unsigned char stat=SYSTIME_VARIABLE *SYSTIME_PERIOD /10000000 %3;
-	static unsigned char stat_l=0;
-	if(stat_l != stat) {
+	static uint8_t stat=0;
+	static uint32_t times_l=0, times_d=0;
+	uint32_t times_n = OLED_SYSTIME_VARIABLE *OLED_SYSTIME_PERIOD;
+#ifdef OLED_SYSTIME_DOWN_CONT
+	times_d += times_l -times_n;
+#else 
+	times_d += times_n -times_l;
+#endif /* OLED_SYSTIME_DOWN_CONT */
+	times_l = times_n;
+	if(times_d >= 10000000) {
+		times_d %= 10000000;
+		if(++stat > 2) stat = 0;
 		OLED_Clear_Gram();
-		stat_l = stat;
 	}
 	switch(stat) {
 		case 0:
@@ -710,17 +799,20 @@ void OLED_Clear_Gram(void)
 //刷新函数
 int OLED_Refresh_Gram(int sync)
 {
+	int32_t timeout;
+#ifdef	OLED_COMPUT_TRANS_FPS
 	static uint32_t times_l;
-	int timeout;
+	uint32_t times_n = OLED_SYSTIME_VARIABLE;
 	
-#ifndef	SYSTIME_DOWN_CONT
-	int32_t	times_bias = SYSTIME_VARIABLE - times_l;
-#else		/* SYSTIME_DOWN_CONT */
-	int32_t	times_bias = times_l - SYSTIME_VARIABLE;
-#endif	/* SYSTIME_DOWN_CONT */
-	if(times_bias < 0) times_bias += SYSTIME_SIZE;
-	fps = 1000000.0 /SYSTIME_PERIOD /times_bias;
-	times_l = SYSTIME_VARIABLE;
+#ifndef	OLED_SYSTIME_DOWN_CONT
+	int32_t	times_bias = times_n - times_l;
+#else		/* OLED_SYSTIME_DOWN_CONT */
+	int32_t	times_bias = times_l - times_n;
+#endif	/* OLED_SYSTIME_DOWN_CONT */
+	if(times_bias < 0) times_bias += OLED_SYSTIME_SIZE;
+	fps = 1000000.0 /OLED_SYSTIME_PERIOD /times_bias;
+	times_l = times_n;
+#endif	/* OLED_COMPUT_TRANS_FPS */
 	
 	while(OLED_send_cmd(0xb0));				//设置页地址（0~7）
 	while(OLED_send_cmd(0x00));				//设置显示位置—列低地址
@@ -729,29 +821,29 @@ int OLED_Refresh_Gram(int sync)
 	OLED_DMAConfig();
 	
 	timeout = WaitTime;
-	while(I2C_GetFlagStatus(I2C1, I2C_FLAG_BUSY)) {
+	while(I2C_GetFlagStatus(OLED_IICx, I2C_FLAG_BUSY)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	I2C_GenerateSTART(I2C1, ENABLE);
+	I2C_GenerateSTART(OLED_IICx, ENABLE);
 	timeout = WaitTime;
-	while(!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT)) {
+	while(!I2C_CheckEvent(OLED_IICx, I2C_EVENT_MASTER_MODE_SELECT)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	I2C_Send7bitAddress(I2C1, 0x78, I2C_Direction_Transmitter);
+	I2C_Send7bitAddress(OLED_IICx, 0x78, I2C_Direction_Transmitter);
 	timeout = WaitTime;
-	while(!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)) {
+	while(!I2C_CheckEvent(OLED_IICx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)) {
 		if(--timeout == 0) return -1;
 	}
 	
-	I2C_SendData(I2C1, 0x40);
+	I2C_SendData(OLED_IICx, 0x40);
 	timeout = WaitTime;
-	while ((!I2C_GetFlagStatus(I2C1,I2C_FLAG_TXE)) && (!I2C_GetFlagStatus(I2C1,I2C_FLAG_BTF))) {
+	while ((!I2C_GetFlagStatus(OLED_IICx,I2C_FLAG_TXE)) && (!I2C_GetFlagStatus(OLED_IICx,I2C_FLAG_BTF))) {
 		if(--timeout == 0) return -1;
 	}
 	dma1_l6_busy = 1;
-	I2C_DMACmd(I2C1, ENABLE);
+	I2C_DMACmd(OLED_IICx, ENABLE);
 	DMA_Cmd(DMA1_Channel6, ENABLE);
 	
 	if(sync){
@@ -774,17 +866,17 @@ void OLED_Continuous_Refresh_Stop(void) {
 void DMA1_Channel6_IRQHandler() {
 	int timeout = WaitTime;
 	if(DMA_GetITStatus(DMA1_IT_TC6)) {
-		while (--timeout && !I2C_GetFlagStatus(I2C1, I2C_FLAG_BTF));
+		while (--timeout && !I2C_GetFlagStatus(OLED_IICx, I2C_FLAG_BTF));
 		
-		I2C_GenerateSTOP(I2C1, ENABLE);
+		I2C_GenerateSTOP(OLED_IICx, ENABLE);
 		timeout = WaitTime;
-		while(--timeout && I2C_GetFlagStatus(I2C1, I2C_FLAG_BUSY));
+		while(--timeout && I2C_GetFlagStatus(OLED_IICx, I2C_FLAG_BUSY));
 		
-		I2C_DMACmd(I2C1, DISABLE);
+		I2C_DMACmd(OLED_IICx, DISABLE);
 		DMA_Cmd(DMA1_Channel6, DISABLE);
 		DMA_ClearFlag(DMA1_FLAG_TC6);
-		(void) I2C1->SR1;
-		(void) I2C1->SR2;
+		(void) OLED_IICx->SR1;
+		(void) OLED_IICx->SR2;
 		
 		if(continuous_refresh)
 			while(OLED_Refresh_Gram(0));
@@ -792,8 +884,8 @@ void DMA1_Channel6_IRQHandler() {
 			dma1_l6_busy = 0;
 	}else if(DMA_GetITStatus(DMA_IT_TE)) {
 		DMA_DeInit(DMA1_Channel6);
-		(void) I2C1->SR1;
-		(void) I2C1->SR2;
+		(void) OLED_IICx->SR1;
+		(void) OLED_IICx->SR2;
 		
 		if(continuous_refresh)
 			while(OLED_Refresh_Gram(0));
@@ -801,8 +893,9 @@ void DMA1_Channel6_IRQHandler() {
 			dma1_l6_busy = 0;
 	}
 }
-
-uint8_t u8x8_msg_null_cb(u8x8_t *u8x8, uint8_t msg, U8X8_UNUSED uint8_t arg_int, U8X8_UNUSED void *arg_ptr) {
+	 
+#ifdef	SUPPORT_U8G2
+uint8_t OLED_u8x8_empty_cb(u8x8_t *u8x8, uint8_t msg, U8X8_UNUSED uint8_t arg_int, U8X8_UNUSED void *arg_ptr) {
 	return NULL;
 }
 
@@ -810,11 +903,12 @@ u8g2_t *OLED_U8G2_Init(void) {
 	static u8g2_t u8g2;
 	uint8_t *buffer = (uint8_t *)OLED_GRAM;
 	
-	u8g2_SetupDisplay(&u8g2, u8x8_d_ssd1306_128x64_noname, u8x8_msg_null_cb, u8x8_msg_null_cb, u8x8_msg_null_cb);
+	u8g2_SetupDisplay(&u8g2, u8x8_d_ssd1306_128x64_noname, OLED_u8x8_empty_cb, OLED_u8x8_empty_cb, OLED_u8x8_empty_cb);
   u8g2_SetupBuffer(&u8g2, buffer, 8, u8g2_ll_hvline_vertical_top_lsb, U8G2_R0);
 	return &u8g2;
 }
 
+#ifdef	USE_U8G2_EXAMPLE
 void OLED_U8G2_Draw_Example(u8g2_t *u8g2)
 {
     u8g2_SetFontMode(u8g2, 1); 
@@ -839,3 +933,5 @@ void OLED_U8G2_Draw_Example(u8g2_t *u8g2)
     u8g2_SetFont(u8g2, u8g2_font_4x6_tr);
     u8g2_DrawStr(u8g2, 1,54,"github.com/olikraus/u8g2");
 }
+#endif	/* USE_U8G2_EXAMPLE */
+#endif	/* SUPPORT_U8G2 */
