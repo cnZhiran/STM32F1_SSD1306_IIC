@@ -25,19 +25,21 @@
   * @{
   */
 	 
-#define OLED_IICx					I2C1
-#define OLED_IIC_GPIOx		GPIOB
-#define OLED_IIC_PIN			GPIO_Pin_6|GPIO_Pin_7
-//#define OLED_IIC_REMAP	GPIO_Remap_I2C1
-	 
-#define OLED_SIZE_X 64
-#define OLED_SIZE_Y 128
-#define OLED_PAGE_NUM OLED_SIZE_X/8
+#define OLED_IICx						I2C1
+#define OLED_IIC_GPIOx			GPIOB
+#define OLED_IIC_PIN				GPIO_Pin_6|GPIO_Pin_7
+//#define OLED_IIC_REMAP			GPIO_Remap_I2C1
+#define OLED_DMA1_Channel6
+//#define OLED_DMA1_Channel4
+ 
+#define OLED_SIZE_X 128
+#define OLED_SIZE_Y 64	
+#define OLED_PAGE_NUM OLED_SIZE_Y/8
 
 #define USE_GRAM	//启用图形缓存，以及它的基本控制和绘制函数
 #define USE_PAGE	//启用页绘制函数（非DMA方式）
 #define SUPPORT_U8G2	//启用u8g2第三方图形库，若不启用，可将组u8g2删除，以减少程序大小
-	 
+
 #ifdef	SUPPORT_U8G2	
 #define	USE_U8G2_EXAMPLE		//启用u8g2绘制测试用例
 #ifndef USE_GRAM
@@ -72,9 +74,8 @@
   */
 
 #define IS_OLED_PAGE(PAGE) (PAGE >= 0 && PAGE < OLED_PAGE_NUM)
-#define IS_OLED_COLUMN(COLUMN) (COLUMN >= 0 && COLUMN < OLED_SIZE_Y)
+#define IS_OLED_COLUMN(COLUMN) (COLUMN >= 0 && COLUMN < OLED_SIZE_X)
 	
-
 /* Includes ------------------------------------------------------------------*/	 
 #include "stm32f10x.h"                  // Device header
 #ifdef	SUPPORT_U8G2
@@ -109,7 +110,7 @@ void OLED_SetPage(uint8_t page);
 void OLED_SetColumn(uint8_t col);
 void OLED_SetPos(uint8_t page, uint8_t col);
 
-//页绘制函数
+//页写入函数
 void OLED_Clear(void);
 #ifdef	USE_PAGE
 void OLED_Full(uint8_t val);
@@ -137,9 +138,9 @@ void OLED_DrawString(uint8_t x, uint8_t y, char *str, uint8_t size, uint8_t mode
 
 #ifdef	USE_GRAM_EXAMPLE
 //图形缓存基本绘制函数测试用例
-void OLED_CNZH_Example(void);
-void OLED_Simulated_Noise_Example(void);
 void OLED_Frame_Example(void);
+void OLED_Simulated_Noise_Example(void);
+void OLED_CNZH_Example(void);
 #ifdef	USE_U8G2_EXAMPLE
 //混合测试用例
 void OLED_Example_Loop(u8g2_t *u8g2);
