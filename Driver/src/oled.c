@@ -408,6 +408,8 @@ void OLED_ShowString(uint8_t page, uint8_t col, char *str)
 }
 #endif	/* USE_PAGE */
 
+
+#ifdef	USE_GRAM_DRAW_BASE_FUNCTION
 /**
   * @brief  向显存绘制一个点
 	* @param  x：行的位置
@@ -755,6 +757,7 @@ void OLED_Example_Loop(void) {
 	}
 }
 #endif	/* USE_U8G2_EXAMPLE */
+#endif  /* USE_GRAM_DRAW_BASE_FUNCTION */
 
 /**
   * @brief  显存清空函数

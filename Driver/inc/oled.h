@@ -5,10 +5,10 @@
   * @date    2021-8-3
   * @brief   This file contains all the functions prototypes for the IIC-OLED.
   ******************************************************************************
-	* @attention
-	*
+  * @attention
+  *
   * 该代码开源免费，请自觉遵守开源协议，如果您是通过购买获得此代码，一定是被噶韭菜了！
-	* 同时，由于使用该代码所造成的任何直接或间接损失，作者都概不负责。
+  * 同时，由于使用该代码所造成的任何直接或间接损失，作者都概不负责。
   *
   ******************************************************************************
   */
@@ -25,10 +25,10 @@
   * @{
   */
 	 
-#define OLED_IICx						I2C1
-#define OLED_IIC_GPIOx			GPIOB
-#define OLED_IIC_PIN				GPIO_Pin_6|GPIO_Pin_7
-//#define OLED_IIC_REMAP			GPIO_Remap_I2C1
+#define OLED_IICx           I2C1
+#define OLED_IIC_GPIOx      GPIOB
+#define OLED_IIC_PIN        GPIO_Pin_6|GPIO_Pin_7
+//#define OLED_IIC_REMAP      GPIO_Remap_I2C1
 #define OLED_DMA1_Channel6
 //#define OLED_DMA1_Channel4
  
@@ -58,7 +58,7 @@
 #if defined OLED_COMPUT_TRANS_FPS || defined USE_GRAM_EXAMPLE	//计算帧率和测试用例需要使用一个可靠的系统时间计数变量，不需要此功能可以注释掉
 #define OLED_SYSTIME_VARIABLE	times		//系统时间计数变量名称
 #define OLED_SYSTIME_PERIOD		10			//计数一次的周期，单位微秒us
-#define OLED_SYSTIME_SIZE			500000				//计数变量的范围，UINT32_MAX+1等价于0
+#define OLED_SYSTIME_SIZE			0				//计数变量的范围，UINT32_MAX+1等价于0
 //以下是一个示例，使用SysTick->VAL寄存器作为系统时间
 //#define OLED_SYSTIME_DOWN_CONT				//SysTick是个减计数器
 //#define OLED_SYSTIME_USE_SYSTICK			//使用SysTick->VAL作为计数器，注意浮点运算用时较长
